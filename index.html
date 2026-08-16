@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СС АРМИЯ — Личное дело</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#121309; --panel:#1b1c12; --panel-2:#22240f; --line:#3a3b26;
+    --olive:#7c8a4e; --olive-dim:#525c33; --amber:#cd9a3c; --red:#a5433a;
+    --gold:#d9b95a; --text:#e9e6d6; --text-dim:#9b9884;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:radial-gradient(1200px 600px at 10% -10%, #1a1c10 0%, transparent 60%),var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+  ::selection{background:var(--olive);color:#12130a;}
+  .display{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.04em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;}
+  img{max-width:100%;display:block;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg, rgba(124,138,78,0.06), transparent);flex-wrap:wrap;gap:10px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:34px;height:34px;border:2px solid var(--olive);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;color:var(--olive);}
+  .brand-title{font-family:'Oswald',sans-serif;font-size:19px;letter-spacing:0.08em;}
+  .brand-sub{font-size:11px;color:var(--text-dim);letter-spacing:0.12em;margin-top:1px;}
+  .whoami{font-size:12px;color:var(--text-dim);text-align:right;}
+  .whoami b{color:var(--amber);}
+  .logout-btn{margin-left:14px;background:none;border:1px solid var(--line);color:var(--text-dim);font-size:11px;padding:6px 10px;cursor:pointer;letter-spacing:0.05em;}
+  .logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+  .app{max-width:1000px;margin:0 auto;padding:28px 20px 80px;}
+  .tabs{display:flex;gap:2px;margin-bottom:22px;flex-wrap:wrap;border-bottom:1px solid var(--line);}
+  .tab{padding:10px 14px;background:none;border:none;color:var(--text-dim);font-family:'Oswald',sans-serif;letter-spacing:0.06em;font-size:12.5px;cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;}
+  .tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+  .tab:hover:not(.active){color:var(--text);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);padding:22px;position:relative;}
+  .panel + .panel{margin-top:16px;}
+  .panel-title{font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.1em;color:var(--olive);text-transform:uppercase;margin:0 0 16px;display:flex;align-items:center;gap:8px;justify-content:space-between;}
+  .panel-title-left{display:flex;align-items:center;gap:8px;}
+  .panel-title-left::before{content:"";width:6px;height:6px;background:var(--olive);display:inline-block;}
+
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .login-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);padding:32px 28px;position:relative;overflow:hidden;}
+  .login-card::after{content:"ДОСТУП ОГРАНИЧЕН";position:absolute;top:14px;right:-38px;background:var(--red);color:#f2e9d8;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.12em;padding:3px 42px;transform:rotate(30deg);opacity:0.85;}
+  .login-title{font-family:'Oswald',sans-serif;font-size:24px;letter-spacing:0.05em;margin:0 0 6px;}
+  .login-sub{color:var(--text-dim);font-size:13px;margin:0 0 24px;line-height:1.5;}
+  .field-label{font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;display:block;}
+  input[type=text],input[type=number],input[type=password],input[type=file],select,textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;margin-bottom:16px;
+  }
+  select{font-family:'Inter',sans-serif;}
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--amber);outline-offset:1px;}
+  .btn{display:inline-block;background:var(--olive);color:#12130a;border:none;padding:11px 20px;font-family:'Oswald',sans-serif;letter-spacing:0.06em;font-size:13px;text-transform:uppercase;cursor:pointer;}
+  .btn:hover{background:#8b9b5a;}
+  .btn.secondary{background:none;border:1px solid var(--olive-dim);color:var(--olive);}
+  .btn.secondary:hover{border-color:var(--olive);}
+  .btn.danger{background:var(--red);color:#f2e9d8;}
+  .btn.danger:hover{background:#bb4c42;}
+  .btn.gold{background:var(--gold);color:#241d05;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+
+  .id-card{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;}
+  .id-name{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:0.03em;}
+  .id-rank{color:var(--amber);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;margin-top:2px;}
+  .id-row{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);}
+  .id-row:last-child{border-bottom:none;}
+  .id-row span:first-child{color:var(--text-dim);}
+  .id-row span:last-child{font-family:'JetBrains Mono',monospace;}
+  .id-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);border:1px solid var(--line);padding:4px 8px;white-space:nowrap;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;}
+  .stat-box{border:1px solid var(--line);padding:14px;text-align:center;}
+  .stat-num{font-family:'Oswald',sans-serif;font-size:26px;}
+  .stat-num.amber{color:var(--amber);}
+  .stat-num.red{color:var(--red);}
+  .stat-num.gold{color:var(--gold);}
+  .stat-label{font-size:9.5px;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;margin-top:4px;}
+  .immunity-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .immunity-chip{border:1px solid var(--gold);color:var(--gold);font-size:11px;padding:5px 10px;letter-spacing:0.04em;}
+
+  .req-item{border:1px solid var(--line);padding:14px;margin-bottom:10px;}
+  .req-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+  .req-top b{color:var(--amber);}
+  .empty-note{color:var(--text-dim);font-size:13px;padding:14px 0;}
+  .req-photo{max-width:220px;border:1px solid var(--line);margin-bottom:10px;cursor:pointer;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;color:var(--text-dim);font-weight:500;text-transform:uppercase;font-size:10px;letter-spacing:0.06em;padding:8px 8px;border-bottom:1px solid var(--line);}
+  td{padding:9px 8px;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;}
+  tr:last-child td{border-bottom:none;}
+  .table-wrap{overflow-x:auto;}
+  .mini-btn{padding:2px 6px;font-size:10px;margin-left:4px;}
+
+  .shop-item{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);padding:16px;margin-bottom:10px;flex-wrap:wrap;gap:10px;}
+  .shop-item-name{font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.03em;}
+  .shop-item-desc{color:var(--text-dim);font-size:12px;margin-top:3px;}
+  .price-tag{font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:13px;border:1px solid var(--olive-dim);padding:4px 10px;margin-right:10px;}
+
+  .note-box{border-left:2px solid var(--olive-dim);padding:10px 14px;color:var(--text-dim);font-size:12.5px;line-height:1.6;background:rgba(124,138,78,0.05);margin-bottom:16px;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--olive);color:var(--text);padding:12px 20px;font-size:13px;max-width:90vw;z-index:60;}
+  .toast.err{border-color:var(--red);}
+
+  .form-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .form-row > *{flex:1;min-width:140px;}
+
+  .badge{display:inline-block;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;}
+  .badge.ok{color:var(--olive);}
+  .badge.warn{color:var(--amber);}
+  .badge.bad{color:var(--red);}
+  .badge.gold{color:var(--gold);}
+
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .gallery-item{border:1px solid var(--line);cursor:pointer;overflow:hidden;position:relative;background:var(--panel-2);}
+  .gallery-item img{width:100%;height:140px;object-fit:cover;}
+  .gallery-cap{font-size:10.5px;padding:6px 8px;color:var(--text-dim);}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(8,9,4,0.88);display:flex;align-items:center;justify-content:center;z-index:70;padding:20px;}
+  .modal-box{max-width:640px;max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--olive-dim);padding:10px;}
+  .modal-close{position:fixed;top:20px;right:24px;color:var(--text);background:none;border:1px solid var(--line);padding:6px 12px;cursor:pointer;z-index:71;}
+
+  .roulette-wheel{border:2px dashed var(--gold);padding:26px;text-align:center;margin-bottom:16px;}
+  .roulette-result{font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);margin-top:10px;min-height:28px;}
+
+  @media (max-width:600px){
+    .id-card{grid-template-columns:1fr;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ==================== КОНФИГ ==================== */
+const CONFIG = {
+  OWNER_CODE: "OWNER-1945",
+  POINTS_PASS: 5,
+  POINTS_STRETCH: 3,
+  POINTS_OVERNORM: 8,
+  MAX_WARNINGS: 3,
+  MAX_REPRIMANDS: 3,
+  SHOP_COST_REMOVE_WARNING: 10,
+  SHOP_COST_REMOVE_REPRIMAND: 15,
+  SHOP_COST_IMMUNITY_WARNING: 12,
+  SHOP_COST_IMMUNITY_REPRIMAND: 20,
+  VACATION_FREE_PER_WEEK: 1,
+  VACATION_COST_POINTS: 5,
+  VACATION_MAX_PAID_PER_WEEK: 3,
+  ROULETTE_COST: 67,
+  NORM_TYPES: [
+    "Строевая подготовка","Физическая подготовка (ОФП)","Огневая подготовка",
+    "Уставы и субординация","Тактическая подготовка","Медицинская подготовка",
+    "Вождение техники","Радиоподготовка"
+  ],
+};
+
+const ROULETTE_PRIZES = [
+  {label:"Мимо — ничего", weight:35, apply:null},
+  {label:"+5 баллов", weight:20, apply:u=>{u.points+=5;}},
+  {label:"+15 баллов", weight:12, apply:u=>{u.points+=15;}},
+  {label:"Иммунитет от предупреждения", weight:10, apply:u=>{u.immunityWarnings=(u.immunityWarnings||0)+1;}},
+  {label:"Иммунитет от выговора", weight:8, apply:u=>{u.immunityReprimands=(u.immunityReprimands||0)+1;}},
+  {label:"Снятие 1 предупреждения", weight:8, apply:u=>{u.warnings=Math.max(0,u.warnings-1);}},
+  {label:"Снятие 1 выговора", weight:3, apply:u=>{u.reprimands=Math.max(0,u.reprimands-1);}},
+  {label:"ДЖЕКПОТ +50 баллов", weight:4, apply:u=>{u.points+=50;}},
+];
+
+const STORAGE_KEYS = { USERS:"ss_users", REQUESTS:"ss_requests", VACATIONS:"ss_vacations" };
+const PHOTO_KEY = id => `ss_photo_${id}`;
+
+/* ==================== ХРАНИЛИЩЕ ==================== */
+async function loadList(key){
+  try{ const res = await window.storage.get(key, true); return res ? JSON.parse(res.value) : []; }
+  catch(e){ return []; }
+}
+async function saveList(key, list){ await window.storage.set(key, JSON.stringify(list), true); }
+async function savePhoto(id, dataUrl){ await window.storage.set(PHOTO_KEY(id), dataUrl, true); }
+async function loadPhoto(id){
+  try{ const res = await window.storage.get(PHOTO_KEY(id), true); return res ? res.value : null; }
+  catch(e){ return null; }
+}
+
+/* ==================== УТИЛИТЫ ==================== */
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function daysBetween(dateStr){
+  const d = new Date(dateStr+"T00:00:00"); const now = new Date(); now.setHours(0,0,0,0);
+  return Math.max(0, Math.round((now-d)/86400000));
+}
+function isoWeek(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return { year: d.getUTCFullYear(), week };
+}
+function genCode(){
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = "";
+  for(let i=0;i<6;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function pickWeighted(items){
+  const total = items.reduce((s,i)=>s+i.weight,0);
+  let r = Math.random()*total;
+  for(const it of items){ if(r<it.weight) return it; r-=it.weight; }
+  return items[items.length-1];
+}
+function compressImage(file, maxDim=900, quality=0.72){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let {width,height} = img;
+        if(width>height && width>maxDim){ height=Math.round(height*maxDim/width); width=maxDim; }
+        else if(height>=width && height>maxDim){ width=Math.round(width*maxDim/height); height=maxDim; }
+        const canvas = document.createElement("canvas");
+        canvas.width=width; canvas.height=height;
+        canvas.getContext("2d").drawImage(img,0,0,width,height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ==================== СОСТОЯНИЕ ==================== */
+let state = {
+  session:null, tab:null, users:[], requests:[], vacations:[],
+  toast:null, pendingPhotoData:null, modalImg:null, rouletteSpinning:false, rouletteResult:null,
+};
+
+function toast(msg,isErr){ state.toast={msg,isErr}; render(); setTimeout(()=>{state.toast=null;render();},3200); }
+
+async function refreshAll(){
+  const [users, requests, vacations] = await Promise.all([
+    loadList(STORAGE_KEYS.USERS), loadList(STORAGE_KEYS.REQUESTS), loadList(STORAGE_KEYS.VACATIONS)
+  ]);
+  state.users=users; state.requests=requests; state.vacations=vacations;
+}
+function currentUser(){
+  if(!state.session || state.session.isOwner) return null;
+  return state.users.find(u=>u.code===state.session.code) || null;
+}
+
+/* ---- иммунитет ---- */
+function applyWarning(user, {respectImmunity=true}={}){
+  if(respectImmunity && (user.immunityWarnings||0)>0){ user.immunityWarnings-=1; return "blocked"; }
+  user.warnings=(user.warnings||0)+1; return "applied";
+}
+function applyReprimand(user, {respectImmunity=true}={}){
+  if(respectImmunity && (user.immunityReprimands||0)>0){ user.immunityReprimands-=1; return "blocked"; }
+  user.reprimands=(user.reprimands||0)+1; return "applied";
+}
+
+/* ==================== ДЕЙСТВИЯ ==================== */
+async function doLogin(code){
+  code = code.trim().toUpperCase();
+  if(!code){ toast("Введи код доступа", true); return; }
+  await refreshAll();
+  if(code === CONFIG.OWNER_CODE){
+    state.session = { code, isOwner:true, name:"Владелец" };
+    state.tab = "requests"; toast("Вход выполнен как владелец"); render(); return;
+  }
+  const u = state.users.find(x=>x.code===code);
+  if(!u){ toast("Код не найден. Обратись к владельцу за доступом.", true); render(); return; }
+  if(!u.immunityWarnings) u.immunityWarnings = 0;
+  if(!u.immunityReprimands) u.immunityReprimands = 0;
+  state.session = { code, isOwner:false, name:u.name };
+  state.tab = "cabinet"; toast(`Добро пожаловать, ${u.name}`); render();
+}
+function doLogout(){ state.session=null; state.rouletteResult=null; render(); }
+
+async function addMember(name, rank){
+  name = name.trim();
+  if(!name){ toast("Укажи имя участника", true); return; }
+  const code = genCode();
+  state.users.push({
+    code, name, rank: rank || "СС",
+    appointedDate: todayStr(), postStartDate: todayStr(),
+    points:0, warnings:0, reprimands:0, immunityWarnings:0, immunityReprimands:0,
+  });
+  await saveList(STORAGE_KEYS.USERS, state.users);
+  toast(`Добавлен: ${name}. Код доступа: ${code} — передай его участнику`);
+  render();
+}
+
+async function submitNorm(normName, photoFile){
+  const u = currentUser();
+  if(!normName){ toast("Выбери норматив", true); return; }
+  const id = Date.now();
+  let hasPhoto = false;
+  if(photoFile){
+    try{
+      const dataUrl = await compressImage(photoFile);
+      await savePhoto(id, dataUrl);
+      hasPhoto = true;
+    }catch(e){ toast("Не удалось прикрепить фото, заявка отправлена без него", true); }
+  }
+  const req = {
+    id, code:u.code, name:u.name, normName, hasPhoto,
+    status:"pending", pointsAwarded:0, createdAt:new Date().toISOString(),
+  };
+  state.requests.push(req);
+  await saveList(STORAGE_KEYS.REQUESTS, state.requests);
+  toast("Заявка отправлена владельцу на проверку");
+  state.pendingPhotoData = null;
+  render();
+}
+
+async function resolveRequest(id, status, points){
+  const req = state.requests.find(r=>r.id===id);
+  if(!req) return;
+  req.status = status; req.pointsAwarded = points; req.reviewedAt = new Date().toISOString();
+  if(points){
+    const u = state.users.find(x=>x.code===req.code);
+    if(u) u.points += points;
+  }
+  await Promise.all([saveList(STORAGE_KEYS.REQUESTS, state.requests), saveList(STORAGE_KEYS.USERS, state.users)]);
+  toast("Заявка обработана");
+  render();
+}
+
+async function buyRemoveWarning(){
+  const u = currentUser();
+  if(u.warnings<=0){ toast("Нет предупреждений для снятия", true); return; }
+  if(u.points < CONFIG.SHOP_COST_REMOVE_WARNING){ toast("Недостаточно баллов", true); return; }
+  u.points -= CONFIG.SHOP_COST_REMOVE_WARNING; u.warnings -= 1;
+  await saveList(STORAGE_KEYS.USERS, state.users); toast("Предупреждение снято"); render();
+}
+async function buyRemoveReprimand(){
+  const u = currentUser();
+  if(u.reprimands<=0){ toast("Нет выговоров для снятия", true); return; }
+  if(u.points < CONFIG.SHOP_COST_REMOVE_REPRIMAND){ toast("Недостаточно баллов", true); return; }
+  u.points -= CONFIG.SHOP_COST_REMOVE_REPRIMAND; u.reprimands -= 1;
+  await saveList(STORAGE_KEYS.USERS, state.users); toast("Выговор снят"); render();
+}
+async function buyImmunityWarning(){
+  const u = currentUser();
+  if(u.points < CONFIG.SHOP_COST_IMMUNITY_WARNING){ toast("Недостаточно баллов", true); return; }
+  u.points -= CONFIG.SHOP_COST_IMMUNITY_WARNING; u.immunityWarnings=(u.immunityWarnings||0)+1;
+  await saveList(STORAGE_KEYS.USERS, state.users); toast("Иммунитет от предупреждения куплен"); render();
+}
+async function buyImmunityReprimand(){
+  const u = currentUser();
+  if(u.points < CONFIG.SHOP_COST_IMMUNITY_REPRIMAND){ toast("Недостаточно баллов", true); return; }
+  u.points -= CONFIG.SHOP_COST_IMMUNITY_REPRIMAND; u.immunityReprimands=(u.immunityReprimands||0)+1;
+  await saveList(STORAGE_KEYS.USERS, state.users); toast("Иммунитет от выговора куплен"); render();
+}
+
+async function spinRoulette(){
+  const u = currentUser();
+  if(u.points < CONFIG.ROULETTE_COST){ toast(`Нужно ${CONFIG.ROULETTE_COST} баллов`, true); return; }
+  u.points -= CONFIG.ROULETTE_COST;
+  state.rouletteSpinning = true; state.rouletteResult = null; render();
+  const prize = pickWeighted(ROULETTE_PRIZES);
+  await new Promise(r=>setTimeout(r, 900));
+  if(prize.apply) prize.apply(u);
+  await saveList(STORAGE_KEYS.USERS, state.users);
+  state.rouletteSpinning = false; state.rouletteResult = prize.label;
+  render();
+}
+
+async function takeVacation(){
+  const u = currentUser();
+  const {year, week} = isoWeek(new Date());
+  const used = state.vacations.filter(v=>v.code===u.code && v.year===year && v.week===week).length;
+
+  if(used < CONFIG.VACATION_FREE_PER_WEEK){
+    state.vacations.push({id:Date.now(), code:u.code, year, week, isFree:true, cost:0, createdAt:new Date().toISOString()});
+    await saveList(STORAGE_KEYS.VACATIONS, state.vacations);
+    toast("Отпуск оформлен бесплатно (первый на этой неделе)"); render(); return;
+  }
+  if(used < CONFIG.VACATION_MAX_PAID_PER_WEEK){
+    if(u.points < CONFIG.VACATION_COST_POINTS){ toast(`Нужно ${CONFIG.VACATION_COST_POINTS} баллов`, true); return; }
+    u.points -= CONFIG.VACATION_COST_POINTS;
+    state.vacations.push({id:Date.now(), code:u.code, year, week, isFree:false, cost:CONFIG.VACATION_COST_POINTS, createdAt:new Date().toISOString()});
+    await Promise.all([saveList(STORAGE_KEYS.USERS, state.users), saveList(STORAGE_KEYS.VACATIONS, state.vacations)]);
+    toast(`Отпуск оформлен за ${CONFIG.VACATION_COST_POINTS} баллов`); render(); return;
+  }
+  const result = applyWarning(u, {respectImmunity:true});
+  state.vacations.push({id:Date.now(), code:u.code, year, week, isFree:false, cost:0, createdAt:new Date().toISOString()});
+  await Promise.all([saveList(STORAGE_KEYS.USERS, state.users), saveList(STORAGE_KEYS.VACATIONS, state.vacations)]);
+  toast(result==="blocked"
+    ? `Превышен лимит отпусков — предупреждение погашено иммунитетом`
+    : `Превышен лимит отпусков за неделю (>${CONFIG.VACATION_MAX_PAID_PER_WEEK}) — выдано предупреждение`, true);
+  render();
+}
+
+async function ownerAdjust(code, field, delta){
+  const u = state.users.find(x=>x.code===code);
+  if(!u) return;
+  u[field] = Math.max(0, (u[field]||0) + delta);
+  await saveList(STORAGE_KEYS.USERS, state.users);
+  render();
+}
+
+function exportExcel(){
+  const usersSheet = state.users.map(u=>({
+    "Имя": u.name, "Звание": u.rank, "Код": u.code,
+    "Баллы": u.points, "Предупреждения": u.warnings, "Выговоры": u.reprimands,
+    "Иммунитет пред.": u.immunityWarnings||0, "Иммунитет выг.": u.immunityReprimands||0,
+    "Дата назначения": u.appointedDate, "Дней на посту": daysBetween(u.postStartDate),
+  }));
+  const normsSheet = state.requests
+    .filter(r=>r.status!=="pending")
+    .map(r=>({
+      "Участник": r.name, "Норматив": r.normName,
+      "Результат": r.status==="passed"?"Сдан":r.status==="stretch"?"Натянут":r.status==="overnorm"?"Перенорма":"Отклонён",
+      "Баллы": r.pointsAwarded, "Фото": r.hasPhoto?"да":"нет",
+      "Подана": r.createdAt ? r.createdAt.slice(0,16).replace("T"," ") : "",
+      "Проверена": r.reviewedAt ? r.reviewedAt.slice(0,16).replace("T"," ") : "",
+    }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usersSheet), "Личный состав");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(normsSheet), "Нормативы");
+  XLSX.writeFile(wb, `ss_army_${todayStr()}.xlsx`);
+}
+
+/* ==================== РЕНДЕР ==================== */
+function render(){
+  const root = document.getElementById("root");
+  if(!state.session){ root.innerHTML = renderLogin(); attachLoginEvents(); return; }
+  root.innerHTML = renderApp() + renderModal();
+  attachAppEvents();
+}
+
+function renderLogin(){
+  return `
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="display login-title">СС Армия</div>
+        <p class="login-sub">Личное дело. Приватный доступ — введи код, выданный владельцем.</p>
+        <label class="field-label">Код доступа</label>
+        <input type="text" id="loginCode" placeholder="XXXXXX" maxlength="20" autocomplete="off">
+        <button class="btn" id="loginBtn" style="width:100%">Войти</button>
+        <div class="note-box" style="margin-top:18px">Нет кода? Обратись к владельцу лично — доступ строго приватный.</div>
+      </div>
+    </div>
+    ${renderToast()}
+  `;
+}
+function attachLoginEvents(){
+  const btn = document.getElementById("loginBtn"); const input = document.getElementById("loginCode");
+  btn.onclick = ()=>doLogin(input.value);
+  input.onkeydown = (e)=>{ if(e.key==="Enter") doLogin(input.value); };
+  input.focus();
+}
+function renderToast(){
+  if(!state.toast) return "";
+  return `<div class="toast ${state.toast.isErr?'err':''}">${esc(state.toast.msg)}</div>`;
+}
+function renderModal(){
+  if(!state.modalImg) return "";
+  return `<div class="modal-bg" id="modalBg"><button class="modal-close" id="modalClose">Закрыть ✕</button><div class="modal-box"><img src="${state.modalImg}"></div></div>`;
+}
+
+function renderApp(){
+  const isOwner = state.session.isOwner;
+  const tabs = isOwner
+    ? [["requests","Заявки"],["table","Таблица"],["members","Участники"],["gallery","Фотоальбом"]]
+    : [["cabinet","Кабинет"],["norm","Сдать норматив"],["shop","Магазин"],["roulette","Рулетка"],["vacation","Отпуск"],["gallery","Фотоальбом"]];
+  return `
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">СС</div>
+        <div><div class="display brand-title">Личное дело — BlackRussia</div>
+        <div class="brand-sub">${isOwner?'ПАНЕЛЬ ВЛАДЕЛЬЦА':'ЛИЧНЫЙ КАБИНЕТ'}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;">
+        <div class="whoami">${isOwner?'Владелец':'Участник'}<br><b>${esc(state.session.name)}</b></div>
+        <button class="logout-btn" id="logoutBtn">Выйти</button>
+      </div>
+    </div>
+    <div class="app">
+      <div class="tabs">${tabs.map(([id,label])=>`<button class="tab ${state.tab===id?'active':''}" data-tab="${id}">${label}</button>`).join("")}</div>
+      <div id="tabContent">${renderTab()}</div>
+    </div>
+    ${renderToast()}
+  `;
+}
+
+function renderTab(){
+  if(state.session.isOwner){
+    if(state.tab==="requests") return renderOwnerRequests();
+    if(state.tab==="table") return renderOwnerTable();
+    if(state.tab==="members") return renderOwnerMembers();
+    if(state.tab==="gallery") return renderGallery();
+  } else {
+    if(state.tab==="cabinet") return renderCabinet();
+    if(state.tab==="norm") return renderNormForm();
+    if(state.tab==="shop") return renderShop();
+    if(state.tab==="roulette") return renderRoulette();
+    if(state.tab==="vacation") return renderVacation();
+    if(state.tab==="gallery") return renderGallery();
+  }
+  return "";
+}
+
+function renderCabinet(){
+  const u = currentUser();
+  if(!u) return `<div class="panel"><div class="empty-note">Профиль не найден.</div></div>`;
+  const days = daysBetween(u.postStartDate);
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Личное дело</span></div>
+    <div class="id-card">
+      <div>
+        <div class="id-name">${esc(u.name)}</div>
+        <div class="id-rank">${esc(u.rank)}</div>
+        <div style="margin-top:16px;">
+          <div class="id-row"><span>Дата назначения</span><span>${u.appointedDate}</span></div>
+          <div class="id-row"><span>Дней на посту</span><span>${days}</span></div>
+        </div>
+      </div>
+      <div class="id-code">КОД ${u.code}</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num amber">${u.points}</div><div class="stat-label">Баллы</div></div>
+      <div class="stat-box"><div class="stat-num ${u.warnings>0?'red':''}">${u.warnings}/${CONFIG.MAX_WARNINGS}</div><div class="stat-label">Предупреждения</div></div>
+      <div class="stat-box"><div class="stat-num ${u.reprimands>0?'red':''}">${u.reprimands}/${CONFIG.MAX_REPRIMANDS}</div><div class="stat-label">Выговоры</div></div>
+    </div>
+    ${(u.immunityWarnings||u.immunityReprimands)?`
+    <div class="immunity-row">
+      ${u.immunityWarnings?`<div class="immunity-chip">🛡 Иммунитет от предупреждения ×${u.immunityWarnings}</div>`:''}
+      ${u.immunityReprimands?`<div class="immunity-chip">🛡 Иммунитет от выговора ×${u.immunityReprimands}</div>`:''}
+    </div>`:''}
+  </div>`;
+}
+
+function renderNormForm(){
+  const myReqs = state.requests.filter(r=>r.code===state.session.code).slice(-8).reverse();
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Сдать норматив</span></div>
+    <div class="note-box">
+      Сдан — +${CONFIG.POINTS_PASS} б. · Натянут — +${CONFIG.POINTS_STRETCH} б. · Перенорма (превышение требования) — +${CONFIG.POINTS_OVERNORM} б.<br>
+      Решение принимает владелец после проверки.
+    </div>
+    <label class="field-label">Норматив</label>
+    <select id="normSelect">${CONFIG.NORM_TYPES.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</select>
+    <label class="field-label">Фото подтверждения (необязательно)</label>
+    <input type="file" id="normPhoto" accept="image/*">
+    <button class="btn" id="normSubmit">Отправить на проверку</button>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Мои заявки</span></div>
+    ${myReqs.length===0?'<div class="empty-note">Заявок пока нет.</div>':myReqs.map(renderMyReqItem).join("")}
+  </div>`;
+}
+function renderMyReqItem(r){
+  const badge = r.status==="pending" ? '<span class="badge warn">На проверке</span>'
+    : r.status==="passed" ? `<span class="badge ok">Сдан +${r.pointsAwarded}</span>`
+    : r.status==="stretch" ? `<span class="badge warn">Натянут +${r.pointsAwarded}</span>`
+    : r.status==="overnorm" ? `<span class="badge gold">Перенорма +${r.pointsAwarded}</span>`
+    : '<span class="badge bad">Отклонено</span>';
+  return `<div class="req-item"><div class="req-top"><b>${esc(r.normName)}</b>${badge}</div>${r.hasPhoto?'<div style="font-size:11px;color:var(--text-dim)">📷 Фото прикреплено</div>':''}</div>`;
+}
+
+function renderShop(){
+  const u = currentUser();
+  const items = [
+    {name:"Снять выговор", desc:`Сейчас выговоров: ${u.reprimands}`, cost:CONFIG.SHOP_COST_REMOVE_REPRIMAND, id:"buyRepBtn", disabled:u.reprimands<=0},
+    {name:"Снять предупреждение", desc:`Сейчас предупреждений: ${u.warnings}`, cost:CONFIG.SHOP_COST_REMOVE_WARNING, id:"buyWarnBtn", disabled:u.warnings<=0},
+    {name:"Иммунитет от предупреждения", desc:"Погасит следующее автоматическое предупреждение (напр. за превышение отпусков)", cost:CONFIG.SHOP_COST_IMMUNITY_WARNING, id:"buyImmWarnBtn", disabled:false},
+    {name:"Иммунитет от выговора", desc:"Погасит следующий выговор, если владелец включит проверку иммунитета", cost:CONFIG.SHOP_COST_IMMUNITY_REPRIMAND, id:"buyImmRepBtn", disabled:false},
+  ];
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Магазин</span></div>
+    <div class="note-box">Твои баллы: <b style="color:var(--amber)">${u.points}</b></div>
+    ${items.map(it=>`
+      <div class="shop-item">
+        <div><div class="shop-item-name">${it.name}</div><div class="shop-item-desc">${it.desc}</div></div>
+        <div style="display:flex;align-items:center;">
+          <div class="price-tag">${it.cost} б.</div>
+          <button class="btn secondary" id="${it.id}" ${it.disabled?'disabled':''}>Купить</button>
+        </div>
+      </div>`).join("")}
+  </div>`;
+}
+
+function renderRoulette(){
+  const u = currentUser();
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Рулетка</span></div>
+    <div class="note-box">Один спин — ${CONFIG.ROULETTE_COST} баллов. Возможные призы: баллы, иммунитет, снятие взыскания, джекпот — либо мимо.</div>
+    <div class="roulette-wheel">
+      <div class="mono" style="color:var(--text-dim);font-size:12px">Твои баллы: ${u.points}</div>
+      <button class="btn gold" id="spinBtn" ${(u.points<CONFIG.ROULETTE_COST || state.rouletteSpinning)?'disabled':''}>
+        ${state.rouletteSpinning?'Крутится...':'Крутить за '+CONFIG.ROULETTE_COST}
+      </button>
+      <div class="roulette-result">${state.rouletteResult ? '🎲 '+esc(state.rouletteResult) : ''}</div>
+    </div>
+    <div class="note-box" style="margin-bottom:0">
+      ${ROULETTE_PRIZES.map(p=>`${esc(p.label)} — ${p.weight}%`).join(" · ")}
+    </div>
+  </div>`;
+}
+
+function renderVacation(){
+  const u = currentUser();
+  const {year, week} = isoWeek(new Date());
+  const used = state.vacations.filter(v=>v.code===u.code && v.year===year && v.week===week).length;
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Отпуск</span></div>
+    <div class="note-box">
+      1-й отпуск за неделю — бесплатно.<br>
+      2-й и 3-й — минус ${CONFIG.VACATION_COST_POINTS} баллов каждый.<br>
+      Более ${CONFIG.VACATION_MAX_PAID_PER_WEEK} раз за неделю — вместо баллов выдаётся предупреждение
+      (или гасится иммунитетом, если он есть).
+    </div>
+    <div class="id-row"><span>Использовано на этой неделе</span><span>${used}</span></div>
+    <div style="margin-top:16px;"><button class="btn" id="vacationBtn">Оформить отпуск</button></div>
+  </div>`;
+}
+
+function renderOwnerRequests(){
+  const pending = state.requests.filter(r=>r.status==="pending");
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Заявки на нормативы (${pending.length})</span></div>
+    ${pending.length===0?'<div class="empty-note">Нет заявок на проверку.</div>':pending.map(r=>`
+      <div class="req-item">
+        <div class="req-top"><b>${esc(r.name)}</b> — «${esc(r.normName)}»</div>
+        ${r.hasPhoto?`<img class="req-photo" data-photoid="${r.id}" src="" alt="Загрузка фото...">`:''}
+        <div class="btn-row">
+          <button class="btn" data-act="overnorm" data-id="${r.id}">Перенорма (+${CONFIG.POINTS_OVERNORM})</button>
+          <button class="btn secondary" data-act="pass" data-id="${r.id}">Сдал (+${CONFIG.POINTS_PASS})</button>
+          <button class="btn secondary" data-act="stretch" data-id="${r.id}">Натянул (+${CONFIG.POINTS_STRETCH})</button>
+          <button class="btn danger" data-act="reject" data-id="${r.id}">Отклонить</button>
+        </div>
+      </div>`).join("")}
+  </div>`;
+}
+
+function renderOwnerTable(){
+  const users = [...state.users].sort((a,b)=>b.points-a.points);
+  return `
+  <div class="panel">
+    <div class="panel-title">
+      <span class="panel-title-left">Таблица личного состава (${users.length})</span>
+      <button class="btn gold" id="exportBtn" style="padding:8px 14px;font-size:11px">⬇ Скачать Excel</button>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Имя</th><th>Звание</th><th>Баллы</th><th>Пред.</th><th>Выг.</th><th>Иммун.</th><th>Назначен</th><th>На посту</th><th>Код</th></tr></thead>
+      <tbody>
+      ${users.map(u=>`
+        <tr>
+          <td>${esc(u.name)}</td><td>${esc(u.rank)}</td><td>${u.points}</td>
+          <td>${u.warnings}/${CONFIG.MAX_WARNINGS}
+            <button class="btn secondary mini-btn" data-adj="warnings" data-code="${u.code}" data-d="1">+</button>
+            <button class="btn secondary mini-btn" data-adj="warnings" data-code="${u.code}" data-d="-1">−</button></td>
+          <td>${u.reprimands}/${CONFIG.MAX_REPRIMANDS}
+            <button class="btn secondary mini-btn" data-adj="reprimands" data-code="${u.code}" data-d="1">+</button>
+            <button class="btn secondary mini-btn" data-adj="reprimands" data-code="${u.code}" data-d="-1">−</button></td>
+          <td>🛡${u.immunityWarnings||0}/${u.immunityReprimands||0}</td>
+          <td>${u.appointedDate}</td><td>${daysBetween(u.postStartDate)} дн.</td><td>${u.code}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function renderOwnerMembers(){
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Добавить участника</span></div>
+    <div class="form-row">
+      <div><label class="field-label">Имя</label><input type="text" id="memberName" placeholder="Иванов И."></div>
+      <div><label class="field-label">Звание (необязательно)</label><input type="text" id="memberRank" placeholder="СС"></div>
+    </div>
+    <button class="btn" id="addMemberBtn">Добавить и выдать код</button>
+    <div class="note-box" style="margin-top:16px">После добавления сообщи участнику сгенерированный код лично — другого способа входа нет.</div>
+  </div>`;
+}
+
+function renderGallery(){
+  const withPhotos = state.requests.filter(r=>r.hasPhoto && r.status!=="pending").reverse();
+  const pendingWith = state.requests.filter(r=>r.hasPhoto && r.status==="pending").reverse();
+  const all = [...pendingWith, ...withPhotos];
+  if(all.length===0) return `<div class="panel"><div class="panel-title"><span class="panel-title-left">Фотоальбом</span></div><div class="empty-note">Пока нет прикреплённых фото.</div></div>`;
+  return `
+  <div class="panel">
+    <div class="panel-title"><span class="panel-title-left">Фотоальбом (${all.length})</span></div>
+    <div class="gallery">
+      ${all.map(r=>`
+        <div class="gallery-item" data-photoid="${r.id}" data-gallery="1">
+          <img data-photoid-img="${r.id}" src="" alt="фото">
+          <div class="gallery-cap">${esc(r.name)}<br>${esc(r.normName)}</div>
+        </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+/* ==================== СОБЫТИЯ ==================== */
+async function hydratePhotos(){
+  const els = document.querySelectorAll("[data-photoid]");
+  for(const el of els){
+    const id = el.dataset.photoid;
+    const url = await loadPhoto(id);
+    if(!url) continue;
+    if(el.tagName==="IMG") el.src = url;
+    const inner = document.querySelector(`[data-photoid-img="${id}"]`);
+    if(inner) inner.src = url;
+  }
+}
+
+function attachAppEvents(){
+  document.getElementById("logoutBtn").onclick = doLogout;
+  document.querySelectorAll(".tab").forEach(el=>{ el.onclick = ()=>{ state.tab = el.dataset.tab; state.rouletteResult=null; render(); }; });
+
+  const normBtn = document.getElementById("normSubmit");
+  if(normBtn) normBtn.onclick = ()=>{
+    const sel = document.getElementById("normSelect").value;
+    const fileInput = document.getElementById("normPhoto");
+    const file = fileInput.files[0] || null;
+    submitNorm(sel, file);
+  };
+
+  const buyRep = document.getElementById("buyRepBtn"); if(buyRep) buyRep.onclick = buyRemoveReprimand;
+  const buyWarn = document.getElementById("buyWarnBtn"); if(buyWarn) buyWarn.onclick = buyRemoveWarning;
+  const buyImmW = document.getElementById("buyImmWarnBtn"); if(buyImmW) buyImmW.onclick = buyImmunityWarning;
+  const buyImmR = document.getElementById("buyImmRepBtn"); if(buyImmR) buyImmR.onclick = buyImmunityReprimand;
+
+  const spinBtn = document.getElementById("spinBtn"); if(spinBtn) spinBtn.onclick = spinRoulette;
+  const vacBtn = document.getElementById("vacationBtn"); if(vacBtn) vacBtn.onclick = takeVacation;
+  const exportBtn = document.getElementById("exportBtn"); if(exportBtn) exportBtn.onclick = exportExcel;
+
+  document.querySelectorAll("[data-act]").forEach(el=>{
+    el.onclick = ()=>{
+      const id = Number(el.dataset.id); const act = el.dataset.act;
+      if(act==="pass") resolveRequest(id,"passed",CONFIG.POINTS_PASS);
+      else if(act==="stretch") resolveRequest(id,"stretch",CONFIG.POINTS_STRETCH);
+      else if(act==="overnorm") resolveRequest(id,"overnorm",CONFIG.POINTS_OVERNORM);
+      else resolveRequest(id,"rejected",0);
+    };
+  });
+  document.querySelectorAll("[data-adj]").forEach(el=>{ el.onclick = ()=>ownerAdjust(el.dataset.code, el.dataset.adj, Number(el.dataset.d)); });
+
+  const addBtn = document.getElementById("addMemberBtn");
+  if(addBtn) addBtn.onclick = ()=>{
+    addMember(document.getElementById("memberName").value, document.getElementById("memberRank").value);
+    document.getElementById("memberName").value=""; document.getElementById("memberRank").value="";
+  };
+
+  document.querySelectorAll('[data-gallery]').forEach(el=>{
+    el.onclick = async ()=>{
+      const url = await loadPhoto(el.dataset.photoid);
+      if(url){ state.modalImg = url; render(); }
+    };
+  });
+  const modalBg = document.getElementById("modalBg");
+  if(modalBg){
+    modalBg.onclick = (e)=>{ if(e.target.id==="modalBg"){ state.modalImg=null; render(); } };
+    document.getElementById("modalClose").onclick = ()=>{ state.modalImg=null; render(); };
+  }
+
+  hydratePhotos();
+}
+
+/* ==================== СТАРТ ==================== */
+(async function init(){ await refreshAll(); render(); })();
+</script>
+</body>
+</html>
